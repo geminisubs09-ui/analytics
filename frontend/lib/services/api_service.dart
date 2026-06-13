@@ -5,7 +5,7 @@ import 'package:http_parser/http_parser.dart';
 import '../models/analytics_models.dart';
 
 class ApiService {
-  String _baseUrl = kIsWeb ? 'http://127.0.0.1:8000' : 'http://10.0.2.2:8000';
+  String _baseUrl = 'https://sales-analytics-backend-nuv8.onrender.com';
 
   String get baseUrl => _baseUrl;
 
