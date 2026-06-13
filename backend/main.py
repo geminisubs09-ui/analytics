@@ -47,13 +47,26 @@ app.include_router(highest_margin_customers_router)
 
 # Helper function to load env variables from workspace .env
 def get_supabase_credentials():
-    # Look for .env in the parent directory of backend
+    # Check process environment variables first (for cloud deployments like Render)
+    supabase_url = os.environ.get('SUPABASE_URL', '').strip()
+    supabase_key = os.environ.get('SUPABASE_KEY', '').strip()
+    
+    if supabase_url and supabase_key:
+        if supabase_url.endswith('/rest/v1/'):
+            supabase_url = supabase_url[:-9]
+        elif supabase_url.endswith('/rest/v1'):
+            supabase_url = supabase_url[:-8]
+        if supabase_url.endswith('/'):
+            supabase_url = supabase_url[:-1]
+        return supabase_url, supabase_key
+
+    # Look for .env in the parent directory of backend (fallback for local development)
     backend_dir = os.path.dirname(os.path.abspath(__file__))
     env_path = os.path.join(os.path.dirname(backend_dir), ".env")
     
     env_vars = {}
     if not os.path.exists(env_path):
-        raise HTTPException(status_code=500, detail=f".env config file not found at {env_path}")
+        raise HTTPException(status_code=500, detail=f".env config file not found at {env_path} and environment variables are not set")
         
     with open(env_path, 'r') as f:
         for line in f:
@@ -73,7 +86,7 @@ def get_supabase_credentials():
         supabase_url = supabase_url[:-1]
         
     if not supabase_url or not supabase_key:
-        raise HTTPException(status_code=500, detail="Supabase credentials missing in .env")
+        raise HTTPException(status_code=500, detail="Supabase credentials missing in .env and environment variables are not set")
         
     return supabase_url, supabase_key
 
