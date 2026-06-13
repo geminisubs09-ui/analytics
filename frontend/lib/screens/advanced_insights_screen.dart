@@ -166,8 +166,8 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                               if (item.minRateInvoices.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 4.0),
-                                  child: RichText(
-                                    text: TextSpan(
+                                  child: Text.rich(
+                                    TextSpan(
                                       text: 'Min Price Invoices: ',
                                       style: GoogleFonts.outfit(
                                         color: Colors.white38,
@@ -188,8 +188,8 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                                   ),
                                 ),
                               if (item.maxRateInvoices.isNotEmpty)
-                                RichText(
-                                  text: TextSpan(
+                                Text.rich(
+                                  TextSpan(
                                     text: 'Max Price Invoices: ',
                                     style: GoogleFonts.outfit(
                                       color: Colors.white38,

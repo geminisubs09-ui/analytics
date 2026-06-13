@@ -47,15 +47,15 @@ def get_pricing_consistency(min_sales: int = 5, start_date: str = None, end_date
         # Get invoices/parties for min rate
         min_rows = group[group['rate'] == min_rate]
         min_details = []
-        for _, r in min_rows.drop_duplicates(subset=['vch_no', 'party']).head(3).iterrows():
-            min_details.append(f"#{r['vch_no']} ({r['party']})")
+        for _, r in min_rows.drop_duplicates(subset=['vch_no']).head(3).iterrows():
+            min_details.append(f"#{r['vch_no']}")
         min_rate_invoices = ", ".join(min_details)
         
         # Get invoices/parties for max rate
         max_rows = group[group['rate'] == max_rate]
         max_details = []
-        for _, r in max_rows.drop_duplicates(subset=['vch_no', 'party']).head(3).iterrows():
-            max_details.append(f"#{r['vch_no']} ({r['party']})")
+        for _, r in max_rows.drop_duplicates(subset=['vch_no']).head(3).iterrows():
+            max_details.append(f"#{r['vch_no']}")
         max_rate_invoices = ", ".join(max_details)
         
         rate_spread_pct = ((max_rate - min_rate) / avg_rate) * 100 if avg_rate > 0 else 0.0
