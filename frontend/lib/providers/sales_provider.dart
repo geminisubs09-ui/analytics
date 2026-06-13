@@ -31,6 +31,7 @@ class SalesProvider with ChangeNotifier {
   List<VoucherTypeSales> _voucherTypeSales = [];
   List<HighMarginProduct> _highestMarginProducts = [];
   List<HighMarginCustomer> _highestMarginCustomers = [];
+  List<ImportForecast> _importForecasts = [];
 
   // Ungrouped
   List<String> _ungroupedProducts = [];
@@ -59,6 +60,7 @@ class SalesProvider with ChangeNotifier {
   List<VoucherTypeSales> get voucherTypeSales => _voucherTypeSales;
   List<HighMarginProduct> get highestMarginProducts => _highestMarginProducts;
   List<HighMarginCustomer> get highestMarginCustomers => _highestMarginCustomers;
+  List<ImportForecast> get importForecasts => _importForecasts;
   List<String> get ungroupedProducts => _ungroupedProducts;
 
   // Set Filters
@@ -107,6 +109,7 @@ class SalesProvider with ChangeNotifier {
         _apiService.getSalesByVoucherType(startDate: start, endDate: end, party: party),
         _apiService.getHighestMarginProducts(limit: 10, startDate: start, endDate: end, productGroup: group),
         _apiService.getHighestMarginCustomers(startDate: start, endDate: end),
+        _apiService.getImportForecast(),
       ]);
 
       _groupSales = results[0] as List<GroupSales>;
@@ -124,6 +127,7 @@ class SalesProvider with ChangeNotifier {
       _voucherTypeSales = results[12] as List<VoucherTypeSales>;
       _highestMarginProducts = results[13] as List<HighMarginProduct>;
       _highestMarginCustomers = results[14] as List<HighMarginCustomer>;
+      _importForecasts = results[15] as List<ImportForecast>;
 
       // Load ungrouped products separately
       await fetchUngroupedProducts();

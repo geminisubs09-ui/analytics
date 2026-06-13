@@ -356,3 +356,38 @@ class HighMarginCustomer {
     );
   }
 }
+
+class ImportForecast {
+  final String productName;
+  final String groupName;
+  final double totalQuantity;
+  final double totalSalesValue;
+  final int salesCount;
+  final double monthlyRunRate;
+  final double projected3MonthDemand;
+  final int suggestedOrderQty;
+
+  ImportForecast({
+    required this.productName,
+    required this.groupName,
+    required this.totalQuantity,
+    required this.totalSalesValue,
+    required this.salesCount,
+    required this.monthlyRunRate,
+    required this.projected3MonthDemand,
+    required this.suggestedOrderQty,
+  });
+
+  factory ImportForecast.fromJson(Map<String, dynamic> json) {
+    return ImportForecast(
+      productName: json['product_name'] ?? 'Unknown',
+      groupName: json['group_name'] ?? 'Unmapped',
+      totalQuantity: (json['total_quantity'] as num?)?.toDouble() ?? 0.0,
+      totalSalesValue: (json['total_sales_value'] as num?)?.toDouble() ?? 0.0,
+      salesCount: json['sales_count'] ?? 0,
+      monthlyRunRate: (json['monthly_run_rate'] as num?)?.toDouble() ?? 0.0,
+      projected3MonthDemand: (json['projected_3month_demand'] as num?)?.toDouble() ?? 0.0,
+      suggestedOrderQty: json['suggested_order_qty'] ?? 0,
+    );
+  }
+}

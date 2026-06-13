@@ -19,6 +19,7 @@ from backend.analytics.customer_retention import router as customer_retention_ro
 from backend.analytics.voucher_type_sales import router as voucher_type_sales_router
 from backend.analytics.highest_margin_products import router as highest_margin_products_router
 from backend.analytics.highest_margin_customers import router as highest_margin_customers_router
+from backend.analytics.import_forecast import router as import_forecast_router
 
 app = FastAPI(title="Sales Analytics Backend", version="1.0")
 
@@ -44,6 +45,7 @@ app.include_router(customer_retention_router)
 app.include_router(voucher_type_sales_router)
 app.include_router(highest_margin_products_router)
 app.include_router(highest_margin_customers_router)
+app.include_router(import_forecast_router)
 
 # Helper function to load env variables from workspace .env
 def get_supabase_credentials():

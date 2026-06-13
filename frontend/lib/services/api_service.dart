@@ -207,6 +207,12 @@ class ApiService {
     });
   }
 
+  Future<List<ImportForecast>> getImportForecast({int? days}) async {
+    return _getList('/analytics/import-forecast', ImportForecast.fromJson, {
+      if (days != null) 'days': days.toString(),
+    });
+  }
+
   // --- UNGROUPED PRODUCTS & GROUP MAPPING ---
 
   Future<List<String>> getUngroupedProducts() async {

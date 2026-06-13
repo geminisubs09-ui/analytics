@@ -6,6 +6,7 @@ import '../providers/sales_provider.dart';
 import '../widgets/responsive_grid.dart';
 import '../widgets/metric_card.dart';
 import '../widgets/sales_chart.dart';
+import '../widgets/navigation_drawer.dart';
 import '../models/analytics_models.dart';
 import 'upload_screen.dart';
 import 'admin_map_screen.dart';
@@ -133,6 +134,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A), // Deep Slate
+      drawer: const AppNavigationDrawer(activeRoute: 'dashboard'),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E293B),
         elevation: 0,
