@@ -27,9 +27,8 @@ def get_pricing_consistency(min_sales: int = 5, start_date: str = None, end_date
     
     # Exclude products in the 'Indian Item' group
     if not products_df.empty and not items_df.empty:
-        merged = pd.merge(items_df, products_df, on='product_name', how='left')
-        merged['group_name'] = merged['group_name'].fillna('')
-        items_df = merged[merged['group_name'].str.lower().str.strip() != 'indian item']
+        indian_products = products_df[products_df['group_name'].fillna('').str.lower().str.strip() == 'indian item']['product_name']
+        items_df = items_df[~items_df['product_name'].isin(indian_products)]
         
     if items_df.empty:
         return []
@@ -47,14 +46,14 @@ def get_pricing_consistency(min_sales: int = 5, start_date: str = None, end_date
         # Get invoices/parties for min rate
         min_rows = group[group['rate'] == min_rate]
         min_details = []
-        for _, r in min_rows.drop_duplicates(subset=['vch_no']).head(3).iterrows():
+        for _, r in min_rows.drop_duplicates(subset=['vch_no']).iterrows():
             min_details.append(f"#{r['vch_no']}")
         min_rate_invoices = ", ".join(min_details)
         
         # Get invoices/parties for max rate
         max_rows = group[group['rate'] == max_rate]
         max_details = []
-        for _, r in max_rows.drop_duplicates(subset=['vch_no']).head(3).iterrows():
+        for _, r in max_rows.drop_duplicates(subset=['vch_no']).iterrows():
             max_details.append(f"#{r['vch_no']}")
         max_rate_invoices = ", ".join(max_details)
         
