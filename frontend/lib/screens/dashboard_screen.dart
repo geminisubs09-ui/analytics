@@ -189,8 +189,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                     // KPI Grid
                     ResponsiveLayout(
-                      mobile: _buildKPIGrid(2, formattedRevenue, formattedProfit, formattedMargin, activeParties),
-                      desktop: _buildKPIGrid(4, formattedRevenue, formattedProfit, formattedMargin, activeParties),
+                      mobile: _buildKPIGrid(2, 1.2, formattedRevenue, formattedProfit, formattedMargin, activeParties),
+                      desktop: _buildKPIGrid(4, 1.6, formattedRevenue, formattedProfit, formattedMargin, activeParties),
                     ),
                     const SizedBox(height: 24),
 
@@ -427,14 +427,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildKPIGrid(int crossAxisCount, String revenue, String profit, String margin, int customers) {
+  Widget _buildKPIGrid(int crossAxisCount, double aspectRatio, String revenue, String profit, String margin, int customers) {
     return GridView.count(
       crossAxisCount: crossAxisCount,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 1.6,
+      childAspectRatio: aspectRatio,
       children: [
         MetricCard(
           title: 'Total Revenue',
