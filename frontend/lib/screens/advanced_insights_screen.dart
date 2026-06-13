@@ -159,8 +159,58 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                                 _buildPricingItem('Sales Count', '${item.salesCount} times'),
                               ],
                             ),
+                            if (item.minRateInvoices.isNotEmpty || item.maxRateInvoices.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              const Divider(color: Colors.white10, height: 1),
+                              const SizedBox(height: 8),
+                              if (item.minRateInvoices.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: RichText(
+                                    text: TextSpan(
+                                      text: 'Min Price Invoices: ',
+                                      style: GoogleFonts.outfit(
+                                        color: Colors.white38,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text: item.minRateInvoices,
+                                          style: GoogleFonts.outfit(
+                                            color: Colors.white70,
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.normal,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              if (item.maxRateInvoices.isNotEmpty)
+                                RichText(
+                                  text: TextSpan(
+                                    text: 'Max Price Invoices: ',
+                                    style: GoogleFonts.outfit(
+                                      color: Colors.white38,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: item.maxRateInvoices,
+                                        style: GoogleFonts.outfit(
+                                          color: Colors.white70,
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.normal,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
                             if (isHighSpread) ...[
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 12),
                               Row(
                                 children: [
                                   const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 14),

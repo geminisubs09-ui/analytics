@@ -113,6 +113,8 @@ class PricingConsistency {
   final double stdRate;
   final int salesCount;
   final double rateSpreadPct;
+  final String minRateInvoices;
+  final String maxRateInvoices;
 
   PricingConsistency({
     required this.productName,
@@ -122,6 +124,8 @@ class PricingConsistency {
     required this.stdRate,
     required this.salesCount,
     required this.rateSpreadPct,
+    required this.minRateInvoices,
+    required this.maxRateInvoices,
   });
 
   factory PricingConsistency.fromJson(Map<String, dynamic> json) {
@@ -133,6 +137,8 @@ class PricingConsistency {
       stdRate: (json['std_rate'] as num?)?.toDouble() ?? 0.0,
       salesCount: json['sales_count'] ?? 0,
       rateSpreadPct: (json['rate_spread_pct'] as num?)?.toDouble() ?? 0.0,
+      minRateInvoices: json['min_rate_invoices'] ?? '',
+      maxRateInvoices: json['max_rate_invoices'] ?? '',
     );
   }
 }
