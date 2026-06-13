@@ -25,6 +25,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _sortColumn = 'Sales Val';
   bool _sortAscending = false;
 
+  // Sorting State for Customers
+  String _customerSortColumn = 'Margin';
+  bool _customerSortAscending = false;
+
   // Local state for filtering top products by volume
   String _selectedProductGroup = 'All';
   List<ProductSales>? _groupFilteredProducts;
@@ -763,6 +767,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildMarginCustomersTable(List<HighMarginCustomer> data) {
     if (data.isEmpty) return const Text('No customers data.', style: TextStyle(color: Colors.white38));
+    
+    // Sort customer data locally
+    final List<HighMarginCustomer> sortedData = List.from(data);
+    sortedData.sort((a, b) {
+      int cmp = 0;
+      if (_customerSortColumn == 'Customer') {
+        cmp = a.party.toLowerCase().compareTo(b.party.toLowerCase());
+      } else if (_customerSortColumn == 'Total Sales') {
+        cmp = a.totalSales.compareTo(b.totalSales);
+      } else if (_customerSortColumn == 'Margin') {
+        cmp = a.profitMarginPct.compareTo(b.profitMarginPct);
+      }
+      return _customerSortAscending ? cmp : -cmp;
+    });
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -775,9 +794,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             TableRow(
               children: [
-                _tableHeader('Customer'),
-                _tableHeader('Total Sales'),
-                _tableHeader('Margin'),
+                _sortableCustomerHeader('Customer', 'Customer'),
+                _sortableCustomerHeader('Total Sales', 'Total Sales'),
+                _sortableCustomerHeader('Margin', 'Margin'),
               ],
             ),
           ],
@@ -792,7 +811,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 1: FlexColumnWidth(1.2),
                 2: FlexColumnWidth(1),
               },
-              children: data.map((item) => TableRow(
+              children: sortedData.map((item) => TableRow(
                     children: [
                       _tableCell(item.party),
                       _tableCell(NumberFormat.compact().format(item.totalSales)),
@@ -803,6 +822,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _sortableCustomerHeader(String text, String columnKey) {
+    final isActive = _customerSortColumn == columnKey;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          if (_customerSortColumn == columnKey) {
+            _customerSortAscending = !_customerSortAscending;
+          } else {
+            _customerSortColumn = columnKey;
+            _customerSortAscending = false; // Default to descending to show highest first
+          }
+        });
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                text,
+                style: GoogleFonts.outfit(
+                  color: isActive ? const Color(0xFF6366F1) : Colors.white38,
+                  fontSize: 12,
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                ),
+              ),
+              if (isActive) ...[
+                const SizedBox(width: 4),
+                Icon(
+                  _customerSortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                  size: 12,
+                  color: const Color(0xFF6366F1),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 
