@@ -39,9 +39,7 @@ class MetricCard extends StatelessWidget {
 
         return ClipRRect(
           borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-            child: Container(
+          child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -136,7 +134,6 @@ class MetricCard extends StatelessWidget {
                 ],
               ),
             ),
-          ),
         );
       },
     );

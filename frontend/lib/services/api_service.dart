@@ -213,6 +213,44 @@ class ApiService {
     });
   }
 
+  Future<List<MarketBasketPair>> getMarketBasket({String? startDate, String? endDate, String? party, String? productGroup, int? minSupport, int? topN}) async {
+    return _getList('/analytics/market-basket', MarketBasketPair.fromJson, {
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (party != null) 'party': party,
+      if (productGroup != null) 'product_group': productGroup,
+      if (minSupport != null) 'min_support': minSupport.toString(),
+      if (topN != null) 'top_n': topN.toString(),
+    });
+  }
+
+  Future<List<CustomerCLV>> getCustomerCLV({String? startDate, String? endDate, String? party}) async {
+    return _getList('/analytics/customer-clv', CustomerCLV.fromJson, {
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (party != null) 'party': party,
+    });
+  }
+
+  Future<List<SlowMovingProduct>> getSlowMovingStock({String? startDate, String? endDate, String? party, String? productGroup, int? thresholdDays}) async {
+    return _getList('/analytics/slow-moving-stock', SlowMovingProduct.fromJson, {
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (party != null) 'party': party,
+      if (productGroup != null) 'product_group': productGroup,
+      if (thresholdDays != null) 'threshold_days': thresholdDays.toString(),
+    });
+  }
+
+  Future<List<SalesForecast>> getSalesForecast({String? startDate, String? endDate, String? party, int? forecastDays}) async {
+    return _getList('/analytics/sales-forecast', SalesForecast.fromJson, {
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (party != null) 'party': party,
+      if (forecastDays != null) 'forecast_days': forecastDays.toString(),
+    });
+  }
+
   // --- UNGROUPED PRODUCTS & GROUP MAPPING ---
 
   Future<List<String>> getUngroupedProducts() async {

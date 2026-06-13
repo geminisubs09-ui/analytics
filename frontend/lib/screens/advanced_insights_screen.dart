@@ -24,7 +24,7 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 8, vsync: this);
     _pricingSearchController.addListener(() {
       setState(() {
         _pricingSearchQuery = _pricingSearchController.text.toLowerCase();
@@ -70,6 +70,10 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
             Tab(text: 'Customer CRM', icon: Icon(Icons.people_outline, size: 18)),
             Tab(text: 'Dispatch Planner', icon: Icon(Icons.schedule_outlined, size: 18)),
             Tab(text: 'Miti BS Trends', icon: Icon(Icons.calendar_today_outlined, size: 18)),
+            Tab(text: 'Market Basket', icon: Icon(Icons.shopping_basket_outlined, size: 18)),
+            Tab(text: 'Customer CLV', icon: Icon(Icons.monetization_on_outlined, size: 18)),
+            Tab(text: 'Dead Stock', icon: Icon(Icons.inventory_2_outlined, size: 18)),
+            Tab(text: 'Sales Forecast', icon: Icon(Icons.trending_up_outlined, size: 18)),
           ],
         ),
       ),
@@ -82,6 +86,10 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                 _buildCustomerCrmTab(provider.customerRetention),
                 _buildDispatchPlannerTab(provider.weekdaySales),
                 _buildMitiTrendsTab(provider.mitiMonthlyTrends),
+                _buildMarketBasketTab(provider.marketBasket),
+                _buildCustomerCLVTab(provider.customerCLV),
+                _buildDeadStockTab(provider.slowMovingStock),
+                _buildSalesForecastTab(provider.salesForecast),
               ],
             ),
     );
@@ -517,6 +525,247 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                   );
                 }).toList(),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- TAB 5: MARKET BASKET ---
+  Widget _buildMarketBasketTab(List<MarketBasketPair> data) {
+    if (data.isEmpty) {
+      return const Center(child: Text('No market basket data available.', style: TextStyle(color: Colors.white38)));
+    }
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Frequently Bought Together', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.builder(
+              itemCount: data.length,
+              itemBuilder: (context, index) {
+                final item = data[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withOpacity(0.05)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.productA, style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Icon(Icons.add, color: Colors.white38, size: 16),
+                            ),
+                            Text(item.productB, style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6366F1).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Text('${item.frequency}', style: GoogleFonts.outfit(color: const Color(0xFF6366F1), fontWeight: FontWeight.bold, fontSize: 18)),
+                            Text('Invoices', style: GoogleFonts.outfit(color: const Color(0xFF6366F1), fontSize: 10)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- TAB 6: CUSTOMER CLV ---
+  Widget _buildCustomerCLVTab(List<CustomerCLV> data) {
+    if (data.isEmpty) return const Center(child: Text('No CLV data available.', style: TextStyle(color: Colors.white38)));
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Customer Lifetime Value (Historical)', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.builder(
+              itemCount: data.length,
+              itemBuilder: (context, index) {
+                final item = data[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.amber.withOpacity(index < 3 ? 0.3 : 0.05)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: Text(item.party, style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15))),
+                          Text(NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.totalRevenue), style: GoogleFonts.outfit(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 15)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildPricingItem('Orders', '${item.totalOrders}'),
+                          _buildPricingItem('AOV', NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.averageOrderValue)),
+                          _buildPricingItem('Lifespan', '${item.lifespanDays} Days'),
+                          _buildPricingItem('Est Annual', NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.estimatedAnnualClv)),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- TAB 7: DEAD STOCK ---
+  Widget _buildDeadStockTab(List<SlowMovingProduct> data) {
+    if (data.isEmpty) return const Center(child: Text('No slow moving stock data available.', style: TextStyle(color: Colors.white38)));
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Slow Moving / Dead Stock (>60 Days)', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.builder(
+              itemCount: data.length,
+              itemBuilder: (context, index) {
+                final item = data[index];
+                bool isVeryOld = item.daysSinceLastSale > 120;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: isVeryOld ? Colors.redAccent.withOpacity(0.3) : Colors.white.withOpacity(0.05)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.productName, style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                            const SizedBox(height: 4),
+                            Text('Group: ${item.groupName}', style: GoogleFonts.outfit(color: Colors.white54, fontSize: 12)),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                _buildPricingItem('Total Sold Qty', '${item.totalQuantity}'),
+                                const SizedBox(width: 24),
+                                _buildPricingItem('Total Revenue', NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.totalRevenue)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isVeryOld ? Colors.redAccent.withOpacity(0.15) : Colors.orangeAccent.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Text('${item.daysSinceLastSale}', style: GoogleFonts.outfit(color: isVeryOld ? Colors.redAccent : Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 18)),
+                            Text('Days Ago', style: GoogleFonts.outfit(color: isVeryOld ? Colors.redAccent : Colors.orangeAccent, fontSize: 10)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- TAB 8: SALES FORECAST ---
+  Widget _buildSalesForecastTab(List<SalesForecast> data) {
+    if (data.isEmpty) return const Center(child: Text('No forecast data available.', style: TextStyle(color: Colors.white38)));
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('30-Day Sales Forecast', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('Based on 7-Day Moving Average', style: GoogleFonts.outfit(color: Colors.white54, fontSize: 12)),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.builder(
+              itemCount: data.length,
+              itemBuilder: (context, index) {
+                final item = data[data.length - 1 - index]; // reverse order
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: item.isForecast ? const Color(0xFF6366F1).withOpacity(0.3) : Colors.white.withOpacity(0.05)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(item.isForecast ? Icons.auto_graph : Icons.history, color: item.isForecast ? const Color(0xFF6366F1) : Colors.white38, size: 16),
+                          const SizedBox(width: 8),
+                          Text(item.date, style: GoogleFonts.outfit(color: Colors.white70, fontSize: 13)),
+                        ],
+                      ),
+                      Text(
+                        item.isForecast 
+                          ? NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.forecastRevenue ?? 0)
+                          : NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.actualRevenue ?? 0),
+                        style: GoogleFonts.outfit(
+                          color: item.isForecast ? const Color(0xFF6366F1) : Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],

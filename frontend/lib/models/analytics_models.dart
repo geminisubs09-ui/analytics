@@ -397,3 +397,114 @@ class ImportForecast {
     );
   }
 }
+
+class MarketBasketPair {
+  final String productA;
+  final String productB;
+  final int frequency;
+
+  MarketBasketPair({
+    required this.productA,
+    required this.productB,
+    required this.frequency,
+  });
+
+  factory MarketBasketPair.fromJson(Map<String, dynamic> json) {
+    return MarketBasketPair(
+      productA: json['product_a'] ?? '',
+      productB: json['product_b'] ?? '',
+      frequency: json['frequency'] ?? 0,
+    );
+  }
+}
+
+class CustomerCLV {
+  final String party;
+  final double totalRevenue;
+  final int totalOrders;
+  final double averageOrderValue;
+  final int lifespanDays;
+  final double purchaseFrequencyAnnual;
+  final double estimatedAnnualClv;
+  final String firstPurchase;
+  final String lastPurchase;
+
+  CustomerCLV({
+    required this.party,
+    required this.totalRevenue,
+    required this.totalOrders,
+    required this.averageOrderValue,
+    required this.lifespanDays,
+    required this.purchaseFrequencyAnnual,
+    required this.estimatedAnnualClv,
+    required this.firstPurchase,
+    required this.lastPurchase,
+  });
+
+  factory CustomerCLV.fromJson(Map<String, dynamic> json) {
+    return CustomerCLV(
+      party: json['party'] ?? '',
+      totalRevenue: (json['total_revenue'] as num?)?.toDouble() ?? 0.0,
+      totalOrders: json['total_orders'] ?? 0,
+      averageOrderValue: (json['average_order_value'] as num?)?.toDouble() ?? 0.0,
+      lifespanDays: json['lifespan_days'] ?? 0,
+      purchaseFrequencyAnnual: (json['purchase_frequency_annual'] as num?)?.toDouble() ?? 0.0,
+      estimatedAnnualClv: (json['estimated_annual_clv'] as num?)?.toDouble() ?? 0.0,
+      firstPurchase: json['first_purchase'] ?? '',
+      lastPurchase: json['last_purchase'] ?? '',
+    );
+  }
+}
+
+class SlowMovingProduct {
+  final String productName;
+  final String groupName;
+  final String lastSaleDate;
+  final int daysSinceLastSale;
+  final double totalQuantity;
+  final double totalRevenue;
+
+  SlowMovingProduct({
+    required this.productName,
+    required this.groupName,
+    required this.lastSaleDate,
+    required this.daysSinceLastSale,
+    required this.totalQuantity,
+    required this.totalRevenue,
+  });
+
+  factory SlowMovingProduct.fromJson(Map<String, dynamic> json) {
+    return SlowMovingProduct(
+      productName: json['product_name'] ?? '',
+      groupName: json['group_name'] ?? '',
+      lastSaleDate: json['last_sale_date'] ?? '',
+      daysSinceLastSale: json['days_since_last_sale'] ?? 0,
+      totalQuantity: (json['total_quantity'] as num?)?.toDouble() ?? 0.0,
+      totalRevenue: (json['total_revenue'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
+class SalesForecast {
+  final String date;
+  final double? actualRevenue;
+  final double? forecastRevenue;
+  final bool isForecast;
+
+  SalesForecast({
+    required this.date,
+    this.actualRevenue,
+    this.forecastRevenue,
+    required this.isForecast,
+  });
+
+  factory SalesForecast.fromJson(Map<String, dynamic> json) {
+    return SalesForecast(
+      date: json['date'] ?? '',
+      actualRevenue: (json['actual_revenue'] as num?)?.toDouble(),
+      forecastRevenue: (json['forecast_revenue'] as num?)?.toDouble(),
+      isForecast: json['is_forecast'] ?? false,
+    );
+  }
+}
+

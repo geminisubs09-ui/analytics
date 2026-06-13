@@ -32,6 +32,10 @@ class SalesProvider with ChangeNotifier {
   List<HighMarginProduct> _highestMarginProducts = [];
   List<HighMarginCustomer> _highestMarginCustomers = [];
   List<ImportForecast> _importForecasts = [];
+  List<MarketBasketPair> _marketBasket = [];
+  List<CustomerCLV> _customerCLV = [];
+  List<SlowMovingProduct> _slowMovingStock = [];
+  List<SalesForecast> _salesForecast = [];
 
   // Ungrouped
   List<String> _ungroupedProducts = [];
@@ -61,6 +65,10 @@ class SalesProvider with ChangeNotifier {
   List<HighMarginProduct> get highestMarginProducts => _highestMarginProducts;
   List<HighMarginCustomer> get highestMarginCustomers => _highestMarginCustomers;
   List<ImportForecast> get importForecasts => _importForecasts;
+  List<MarketBasketPair> get marketBasket => _marketBasket;
+  List<CustomerCLV> get customerCLV => _customerCLV;
+  List<SlowMovingProduct> get slowMovingStock => _slowMovingStock;
+  List<SalesForecast> get salesForecast => _salesForecast;
   List<String> get ungroupedProducts => _ungroupedProducts;
 
   // Set Filters
@@ -110,6 +118,10 @@ class SalesProvider with ChangeNotifier {
         _apiService.getHighestMarginProducts(limit: 10, startDate: start, endDate: end, productGroup: group),
         _apiService.getHighestMarginCustomers(startDate: start, endDate: end),
         _apiService.getImportForecast(),
+        _apiService.getMarketBasket(startDate: start, endDate: end, party: party, productGroup: group),
+        _apiService.getCustomerCLV(startDate: start, endDate: end, party: party),
+        _apiService.getSlowMovingStock(startDate: start, endDate: end, party: party, productGroup: group),
+        _apiService.getSalesForecast(startDate: start, endDate: end, party: party),
       ]);
 
       _groupSales = results[0] as List<GroupSales>;
@@ -128,6 +140,10 @@ class SalesProvider with ChangeNotifier {
       _highestMarginProducts = results[13] as List<HighMarginProduct>;
       _highestMarginCustomers = results[14] as List<HighMarginCustomer>;
       _importForecasts = results[15] as List<ImportForecast>;
+      _marketBasket = results[16] as List<MarketBasketPair>;
+      _customerCLV = results[17] as List<CustomerCLV>;
+      _slowMovingStock = results[18] as List<SlowMovingProduct>;
+      _salesForecast = results[19] as List<SalesForecast>;
 
       // Load ungrouped products separately
       await fetchUngroupedProducts();

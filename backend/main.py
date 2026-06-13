@@ -20,6 +20,10 @@ from backend.analytics.voucher_type_sales import router as voucher_type_sales_ro
 from backend.analytics.highest_margin_products import router as highest_margin_products_router
 from backend.analytics.highest_margin_customers import router as highest_margin_customers_router
 from backend.analytics.import_forecast import router as import_forecast_router
+from backend.analytics.market_basket import router as market_basket_router
+from backend.analytics.customer_clv import router as customer_clv_router
+from backend.analytics.slow_moving_stock import router as slow_moving_stock_router
+from backend.analytics.sales_forecast import router as sales_forecast_router
 
 app = FastAPI(title="Sales Analytics Backend", version="1.0")
 
@@ -46,6 +50,10 @@ app.include_router(voucher_type_sales_router)
 app.include_router(highest_margin_products_router)
 app.include_router(highest_margin_customers_router)
 app.include_router(import_forecast_router)
+app.include_router(market_basket_router)
+app.include_router(customer_clv_router)
+app.include_router(slow_moving_stock_router)
+app.include_router(sales_forecast_router)
 
 # Helper function to load env variables from workspace .env
 def get_supabase_credentials():
