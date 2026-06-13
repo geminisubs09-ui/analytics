@@ -392,7 +392,7 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                   Text(
                     recText,
                     style: GoogleFonts.outfit(
-                      color: isPeak || isValley || isOffDay ? color : Colors.white50,
+                      color: isPeak || isValley || isOffDay ? color : Colors.white54,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
