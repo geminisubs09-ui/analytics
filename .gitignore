@@ -1,0 +1,28 @@
+# Environment variables (sensitive keys)
+.env
+.env.local
+
+# Databases and excel data files (local cache & source files)
+data/sales_data.db
+data/*.xlsx
+data/incoming/
+data/archive/
+data/output/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+backend/__pycache__/
+backend/analytics/__pycache__/
+
+# IDE and system files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+.DS_Store
+Thumbs.db
