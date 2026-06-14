@@ -694,7 +694,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final isSelected = _selectedProductGroup == groupName;
               String chipLabel = groupName;
               if (groupName != 'All') {
-                final match = provider.groupSales.firstWhere((g) => g.productGroup == groupName, orElse: () => GroupSales(productGroup: groupName, totalSalesValue: 0, estimatedProfit: 0));
+                final match = provider.groupSales.firstWhere(
+                  (g) => g.productGroup == groupName, 
+                  orElse: () => GroupSales(
+                    productGroup: groupName, 
+                    orderLinesCount: 0,
+                    totalQuantity: 0.0,
+                    totalSalesValue: 0.0, 
+                    estimatedProfit: 0.0,
+                    profitMarginPct: 0.0,
+                  )
+                );
                 chipLabel = '$groupName (${Formatters.formatNepaliCurrency(match.totalSalesValue)})';
               }
               return Padding(
