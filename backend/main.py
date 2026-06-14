@@ -30,7 +30,12 @@ app = FastAPI(title="Sales Analytics Backend", version="1.0")
 # Enable CORS for Flutter Web connections
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost",
+        "http://localhost:8080",
+        "http://localhost:3000",
+        "https://geminisubs09-ui.github.io"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
