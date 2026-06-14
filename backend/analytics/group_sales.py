@@ -1,7 +1,7 @@
 import pandas as pd
 import requests
 from fastapi import APIRouter, HTTPException
-from backend.analytics.utils import get_supabase_credentials, load_sales_items_df, load_vouchers_df, apply_analytics_filters
+from backend.analytics.utils import get_supabase_credentials, load_sales_items_df, load_vouchers_df, load_products_df, apply_analytics_filters
 
 router = APIRouter()
 
@@ -12,14 +12,7 @@ def get_group_sales(start_date: str = None, end_date: str = None, party: str = N
     if items_df.empty:
         return []
         
-    headers = {
-        "apikey": key,
-        "Authorization": f"Bearer {key}"
-    }
-    prod_res = requests.get(f"{url}/rest/v1/products?select=product_name,group_name", headers=headers)
-    if prod_res.status_code != 200:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch products: {prod_res.text}")
-    products_df = pd.DataFrame(prod_res.json())
+    products_df = load_products_df(url, key)
     
     vouchers_df = load_vouchers_df(url, key)
     

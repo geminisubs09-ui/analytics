@@ -100,6 +100,24 @@ def load_sales_items_df(url, key):
         df['rate'] = pd.to_numeric(df['rate'], errors='coerce')
     return df
 
+def load_products_df(url, key):
+    headers = {"apikey": key, "Authorization": f"Bearer {key}"}
+    all_data = []
+    limit = 1000
+    offset = 0
+    while True:
+        res = requests.get(f"{url}/rest/v1/products?select=product_name,group_name&limit={limit}&offset={offset}", headers=headers)
+        if res.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"Failed to fetch products: {res.text}")
+        data = res.json()
+        if not data:
+            break
+        all_data.extend(data)
+        if len(data) < limit:
+            break
+        offset += limit
+    return pd.DataFrame(all_data)
+
 def apply_analytics_filters(
     vouchers_df=None, 
     items_df=None, 

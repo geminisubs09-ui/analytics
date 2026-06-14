@@ -1,7 +1,7 @@
 import pandas as pd
 import requests
 from fastapi import APIRouter
-from backend.analytics.utils import get_supabase_credentials, load_vouchers_df, load_sales_items_df, apply_analytics_filters
+from backend.analytics.utils import get_supabase_credentials, load_vouchers_df, load_sales_items_df, load_products_df, apply_analytics_filters
 
 router = APIRouter()
 
@@ -15,10 +15,7 @@ def calculate_top_customers(limit: int, start_date: str, end_date: str, product_
     products_df = None
     if product_group:
         items_df = load_sales_items_df(url, key)
-        headers = {"apikey": key, "Authorization": f"Bearer {key}"}
-        prod_res = requests.get(f"{url}/rest/v1/products?select=product_name,group_name", headers=headers)
-        if prod_res.status_code == 200:
-            products_df = pd.DataFrame(prod_res.json())
+        products_df = load_products_df(url, key)
             
     vouchers_df, items_df = apply_analytics_filters(
         vouchers_df=vouchers_df,

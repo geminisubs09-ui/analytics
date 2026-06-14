@@ -1,7 +1,7 @@
 import pandas as pd
 import requests
 from fastapi import APIRouter
-from backend.analytics.utils import get_supabase_credentials, load_sales_items_df, apply_analytics_filters
+from backend.analytics.utils import get_supabase_credentials, load_sales_items_df, load_products_df, apply_analytics_filters
 
 router = APIRouter()
 
@@ -12,9 +12,7 @@ def get_pricing_consistency(min_sales: int = 5, start_date: str = None, end_date
     if items_df.empty:
         return []
         
-    headers = {"apikey": key, "Authorization": f"Bearer {key}"}
-    prod_res = requests.get(f"{url}/rest/v1/products?select=product_name,group_name", headers=headers)
-    products_df = pd.DataFrame(prod_res.json()) if prod_res.status_code == 200 else pd.DataFrame()
+    products_df = load_products_df(url, key)
     
     _, items_df = apply_analytics_filters(
         items_df=items_df,
@@ -47,14 +45,14 @@ def get_pricing_consistency(min_sales: int = 5, start_date: str = None, end_date
         min_rows = group[group['rate'] == min_rate]
         min_details = []
         for _, r in min_rows.drop_duplicates(subset=['vch_no']).iterrows():
-            min_details.append(f"#{r['vch_no']}")
+            min_details.append(f"#{r['vch_no']} (@ {r['rate']:.2f})")
         min_rate_invoices = ", ".join(min_details)
         
         # Get invoices/parties for max rate
         max_rows = group[group['rate'] == max_rate]
         max_details = []
         for _, r in max_rows.drop_duplicates(subset=['vch_no']).iterrows():
-            max_details.append(f"#{r['vch_no']}")
+            max_details.append(f"#{r['vch_no']} (@ {r['rate']:.2f})")
         max_rate_invoices = ", ".join(max_details)
         
         rate_spread_pct = ((max_rate - min_rate) / avg_rate) * 100 if avg_rate > 0 else 0.0

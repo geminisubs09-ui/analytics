@@ -10,6 +10,7 @@ import '../widgets/navigation_drawer.dart';
 import '../models/analytics_models.dart';
 import 'upload_screen.dart';
 import 'admin_map_screen.dart';
+import '../utils/formatters.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -21,13 +22,14 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   String _selectedYear = 'All Years';
   String _selectedMonth = 'All Months';
+  DateTimeRange? _selectedDateRange;
 
   // Sorting State for Products
   String _sortColumn = 'Sales Val';
   bool _sortAscending = false;
 
   // Sorting State for Customers
-  String _customerSortColumn = 'Margin';
+  String _customerSortColumn = 'Total Sales';
   bool _customerSortAscending = false;
 
   // Local state for filtering top products by volume
@@ -69,7 +71,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String start = '';
     String end = '';
 
-    if (_selectedYear != 'All Years') {
+    if (_selectedDateRange != null) {
+      start = DateFormat('yyyy-MM-dd').format(_selectedDateRange!.start);
+      end = DateFormat('yyyy-MM-dd').format(_selectedDateRange!.end);
+    } else if (_selectedYear != 'All Years') {
       if (_selectedMonth == 'All Months') {
         start = '$_selectedYear-01-01';
         end = '$_selectedYear-12-31';
@@ -109,6 +114,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       _selectedYear = 'All Years';
       _selectedMonth = 'All Months';
+      _selectedDateRange = null;
       _selectedProductGroup = 'All';
       _groupFilteredProducts = null;
     });
@@ -128,8 +134,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     double avgMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0.0;
     int activeParties = provider.customerRetention.length;
 
-    final formattedRevenue = NumberFormat.currency(symbol: 'Rs. ', decimalDigits: 0).format(totalRevenue);
-    final formattedProfit = NumberFormat.currency(symbol: 'Rs. ', decimalDigits: 0).format(totalProfit);
+    final formattedRevenue = Formatters.formatNepaliCurrency(totalRevenue);
+    final formattedProfit = Formatters.formatNepaliCurrency(totalProfit);
     final formattedMargin = '${avgMargin.toStringAsFixed(1)}%';
 
     return Scaffold(
@@ -260,6 +266,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Row(
       children: [
         Expanded(
+          child: InkWell(
+            onTap: () async {
+              final range = await showDateRangePicker(
+                context: context,
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2030),
+              );
+              if (range != null) {
+                setState(() {
+                  _selectedDateRange = range;
+                  _selectedYear = 'All Years';
+                  _selectedMonth = 'All Months';
+                });
+              }
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  const Icon(Icons.date_range, color: Colors.white24, size: 16),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _selectedDateRange == null ? 'Custom Range' : '${DateFormat('MMM d, yy').format(_selectedDateRange!.start)} - ${DateFormat('MMM d, yy').format(_selectedDateRange!.end)}',
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
           child: _buildDropdownField(
             value: _selectedYear,
             items: _years,
@@ -316,6 +361,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildFiltersColumn() {
     return Column(
       children: [
+        InkWell(
+          onTap: () async {
+            final range = await showDateRangePicker(
+              context: context,
+              firstDate: DateTime(2020),
+              lastDate: DateTime(2030),
+            );
+            if (range != null) {
+              setState(() {
+                _selectedDateRange = range;
+                _selectedYear = 'All Years';
+                _selectedMonth = 'All Months';
+              });
+            }
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                const Icon(Icons.date_range, color: Colors.white24, size: 16),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _selectedDateRange == null ? 'Custom Date Range' : '${DateFormat('MMM d, yyyy').format(_selectedDateRange!.start)} - ${DateFormat('MMM d, yyyy').format(_selectedDateRange!.end)}',
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
         _buildDropdownField(
           value: _selectedYear,
           items: _years,
@@ -574,7 +656,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ...data.take(5).map((item) => TableRow(
               children: [
                 _tableCell(item.vchType),
-                _tableCell(NumberFormat.compact().format(item.totalSales)),
+                _tableCell(Formatters.formatNepaliCurrency(item.totalSales)),
                 _tableCell('${item.profitMarginPct.toStringAsFixed(1)}%', isAccent: true),
               ],
             )),
@@ -610,10 +692,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Row(
             children: groups.map((groupName) {
               final isSelected = _selectedProductGroup == groupName;
+              String chipLabel = groupName;
+              if (groupName != 'All') {
+                final match = provider.groupSales.firstWhere((g) => g.productGroup == groupName, orElse: () => GroupSales(productGroup: groupName, totalSalesValue: 0, estimatedProfit: 0));
+                chipLabel = '$groupName (${Formatters.formatNepaliCurrency(match.totalSalesValue)})';
+              }
               return Padding(
                 padding: const EdgeInsets.only(right: 6.0, bottom: 12.0),
                 child: ChoiceChip(
-                  label: Text(groupName),
+                  label: Text(chipLabel),
                   selected: isSelected,
                   selectedColor: const Color(0xFF6366F1),
                   backgroundColor: const Color(0xFF0F172A),
@@ -712,7 +799,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           _tableCell(item.productName),
                           _tableCell(item.totalQuantity.toStringAsFixed(0)),
-                          _tableCell(NumberFormat.compact().format(item.totalSalesValue)),
+                          _tableCell(Formatters.formatNepaliCurrency(item.totalSalesValue)),
                         ],
                       )).toList(),
                 ),
@@ -816,7 +903,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: sortedData.map((item) => TableRow(
                     children: [
                       _tableCell(item.party),
-                      _tableCell(NumberFormat.compact().format(item.totalSales)),
+                      _tableCell(Formatters.formatNepaliCurrency(item.totalSales)),
                       _tableCell('${item.profitMarginPct.toStringAsFixed(1)}%', isAccent: true),
                     ],
                   )).toList(),

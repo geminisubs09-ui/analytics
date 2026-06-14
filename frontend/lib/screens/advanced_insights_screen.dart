@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../providers/sales_provider.dart';
 import '../widgets/navigation_drawer.dart';
 import '../models/analytics_models.dart';
+import '../utils/formatters.dart';
 
 class AdvancedInsightsScreen extends StatefulWidget {
   const AdvancedInsightsScreen({Key? key}) : super(key: key);
@@ -20,6 +21,7 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
 
   String _pricingSearchQuery = '';
   String _crmSearchQuery = '';
+  double _pricingSpreadThreshold = 20.0;
 
   @override
   void initState() {
@@ -105,6 +107,29 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
         children: [
           _buildSearchBox(_pricingSearchController, 'Search products...'),
           const SizedBox(height: 16),
+          Row(
+            children: [
+              Text('Min Spread (%):', style: GoogleFonts.outfit(color: Colors.white70, fontSize: 13)),
+              Expanded(
+                child: Slider(
+                  value: _pricingSpreadThreshold,
+                  min: 0,
+                  max: 100,
+                  divisions: 20,
+                  activeColor: const Color(0xFF6366F1),
+                  inactiveColor: Colors.white24,
+                  label: '${_pricingSpreadThreshold.toInt()}%',
+                  onChanged: (val) {
+                    setState(() {
+                      _pricingSpreadThreshold = val;
+                    });
+                  },
+                ),
+              ),
+              Text('${_pricingSpreadThreshold.toInt()}%', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+            ],
+          ),
+          const SizedBox(height: 16),
           Expanded(
             child: filtered.isEmpty
                 ? const Center(child: Text('No pricing discrepancies found.', style: TextStyle(color: Colors.white38)))
@@ -112,7 +137,8 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final item = filtered[index];
-                      final isHighSpread = item.rateSpreadPct > 20.0;
+                      final isHighSpread = item.rateSpreadPct > _pricingSpreadThreshold;
+                      if (item.rateSpreadPct < _pricingSpreadThreshold) return const SizedBox.shrink();
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
@@ -161,9 +187,9 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _buildPricingItem('Min Rate', 'Rs. ${item.minRate.toStringAsFixed(0)}'),
-                                _buildPricingItem('Max Rate', 'Rs. ${item.maxRate.toStringAsFixed(0)}'),
-                                _buildPricingItem('Avg Rate', 'Rs. ${item.avgRate.toStringAsFixed(0)}'),
+                                _buildPricingItem('Min Rate', Formatters.formatNepaliCurrency(item.minRate)),
+                                _buildPricingItem('Max Rate', Formatters.formatNepaliCurrency(item.maxRate)),
+                                _buildPricingItem('Avg Rate', Formatters.formatNepaliCurrency(item.avgRate)),
                                 _buildPricingItem('Sales Count', '${item.salesCount} times'),
                               ],
                             ),
@@ -224,7 +250,7 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                                   const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 14),
                                   const SizedBox(width: 4),
                                   Text(
-                                    'High pricing leakage detected (>20% spread)',
+                                    'High pricing leakage detected (>${_pricingSpreadThreshold.toInt()}% spread)',
                                     style: GoogleFonts.outfit(color: Colors.redAccent.withOpacity(0.8), fontSize: 11),
                                   ),
                                 ],
@@ -438,7 +464,7 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                         ],
                       ),
                       Text(
-                        'Sales: ' + NumberFormat.compactCurrency(symbol: 'Rs. ').format(daySales.totalSales),
+                        'Sales: ' + Formatters.formatNepaliCurrency(daySales.totalSales),
                         style: GoogleFonts.outfit(
                           color: isPeak ? const Color(0xFF6366F1) : Colors.white70,
                           fontWeight: FontWeight.bold,
@@ -518,8 +544,8 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                   return TableRow(
                     children: [
                       _tableCell('${item.monthName} ${item.year}'),
-                      _tableCell(NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.monthlySales)),
-                      _tableCell(NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.monthlyProfit)),
+                      _tableCell(Formatters.formatNepaliCurrency(item.monthlySales)),
+                      _tableCell(Formatters.formatNepaliCurrency(item.monthlyProfit)),
                       _tableCell('${margin.toStringAsFixed(1)}%', isAccent: true),
                     ],
                   );
@@ -626,7 +652,7 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(child: Text(item.party, style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15))),
-                          Text(NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.totalRevenue), style: GoogleFonts.outfit(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 15)),
+                          Text(Formatters.formatNepaliCurrency(item.totalRevenue), style: GoogleFonts.outfit(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 15)),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -634,9 +660,9 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           _buildPricingItem('Orders', '${item.totalOrders}'),
-                          _buildPricingItem('AOV', NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.averageOrderValue)),
+                          _buildPricingItem('AOV', Formatters.formatNepaliCurrency(item.averageOrderValue)),
                           _buildPricingItem('Lifespan', '${item.lifespanDays} Days'),
-                          _buildPricingItem('Est Annual', NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.estimatedAnnualClv)),
+                          _buildPricingItem('Est Annual', Formatters.formatNepaliCurrency(item.estimatedAnnualClv)),
                         ],
                       ),
                     ],
@@ -688,7 +714,7 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                               children: [
                                 _buildPricingItem('Total Sold Qty', '${item.totalQuantity}'),
                                 const SizedBox(width: 24),
-                                _buildPricingItem('Total Revenue', NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.totalRevenue)),
+                                _buildPricingItem('Total Revenue', Formatters.formatNepaliCurrency(item.totalRevenue)),
                               ],
                             ),
                           ],
@@ -755,8 +781,8 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
                       ),
                       Text(
                         item.isForecast 
-                          ? NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.forecastRevenue ?? 0)
-                          : NumberFormat.compactCurrency(symbol: 'Rs. ').format(item.actualRevenue ?? 0),
+                          ? Formatters.formatNepaliCurrency(item.forecastRevenue ?? 0)
+                          : Formatters.formatNepaliCurrency(item.actualRevenue ?? 0),
                         style: GoogleFonts.outfit(
                           color: item.isForecast ? const Color(0xFF6366F1) : Colors.white,
                           fontWeight: FontWeight.bold,

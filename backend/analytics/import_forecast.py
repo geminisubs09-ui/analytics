@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException
-from backend.analytics.utils import get_supabase_credentials, load_sales_items_df
+from backend.analytics.utils import get_supabase_credentials, load_sales_items_df, load_products_df
 
 router = APIRouter()
 
@@ -54,13 +54,8 @@ def get_import_forecast(days: int = 90):
     print("get_import_forecast: Grouped summary, shape =", summary.shape)
     
     print("get_import_forecast: Fetching product groups...")
-    headers = {
-        "apikey": key,
-        "Authorization": f"Bearer {key}"
-    }
-    prod_res = requests.get(f"{url}/rest/v1/products?select=product_name,group_name", headers=headers)
-    if prod_res.status_code == 200:
-        products_df = pd.DataFrame(prod_res.json())
+    products_df = load_products_df(url, key)
+    if not products_df.empty:
         summary = pd.merge(summary, products_df, on='product_name', how='left')
         summary['group_name'] = summary['group_name'].fillna('Unmapped')
     else:

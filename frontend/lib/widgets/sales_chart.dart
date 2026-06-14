@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../models/analytics_models.dart';
+import '../utils/formatters.dart';
 
 class SalesTrendChart extends StatelessWidget {
   final List<DailyTrend> trends;
@@ -21,9 +22,9 @@ class SalesTrendChart extends StatelessWidget {
     final double maxSales = trends.map((e) => e.dailySales).reduce((a, b) => a > b ? a : b);
     final double maxY = maxSales * 1.2; // Add padding
 
-    // Take at most 10 points for readable chart
-    final displayTrends = trends.length > 15 
-        ? trends.sublist(trends.length - 15) 
+    // Take at most 30 points for readable chart
+    final displayTrends = trends.length > 30 
+        ? trends.sublist(trends.length - 30) 
         : trends;
 
     final List<FlSpot> salesSpots = [];
@@ -52,7 +53,7 @@ class SalesTrendChart extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
-              interval: 3,
+              interval: 5,
               getTitlesWidget: (value, meta) {
                 final int idx = value.toInt();
                 if (idx >= 0 && idx < displayTrends.length) {
@@ -80,7 +81,7 @@ class SalesTrendChart extends StatelessWidget {
                   axisSide: meta.axisSide,
                   space: 8,
                   child: Text(
-                    currencyFormatter.format(value),
+                    Formatters.formatNepaliCurrency(value),
                     style: GoogleFonts.outfit(color: Colors.grey[500], fontSize: 10),
                   ),
                 );
@@ -129,7 +130,7 @@ class SalesTrendChart extends StatelessWidget {
                 final isSales = spot.barIndex == 0;
                 final label = isSales ? 'Sales' : 'Profit';
                 return LineTooltipItem(
-                  '$label: Rs. ${NumberFormat("#,##,###").format(spot.y)}',
+                  '$label: ${Formatters.formatNepaliCurrency(spot.y)}',
                   GoogleFonts.outfit(
                     color: isSales ? const Color(0xFF818CF8) : const Color(0xFF34D399),
                     fontWeight: FontWeight.bold,
@@ -260,7 +261,7 @@ class WeekdaySalesChart extends StatelessWidget {
                   axisSide: meta.axisSide,
                   space: 8,
                   child: Text(
-                    currencyFormatter.format(value),
+                    Formatters.formatNepaliCurrency(value),
                     style: GoogleFonts.outfit(color: Colors.grey[500], fontSize: 10),
                   ),
                 );
@@ -274,7 +275,7 @@ class WeekdaySalesChart extends StatelessWidget {
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               final String day = weekDaysOrder[group.x.toInt()];
               return BarTooltipItem(
-                '$day\nRs. ${NumberFormat("#,##,###").format(rod.toY)}',
+                '$day\n${Formatters.formatNepaliCurrency(rod.toY)}',
                 GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
               );
             },
@@ -323,7 +324,7 @@ class GroupSalesChart extends StatelessWidget {
           return PieChartSectionData(
             color: sliceColors[i % sliceColors.length],
             value: val,
-            title: '${group.productGroup}\n${NumberFormat.compact().format(val)}',
+            title: '${group.productGroup}\n${Formatters.formatNepaliCurrency(val)}',
             radius: 50,
             titleStyle: GoogleFonts.outfit(
               color: Colors.white,

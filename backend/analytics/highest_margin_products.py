@@ -1,7 +1,7 @@
 import pandas as pd
 import requests
 from fastapi import APIRouter
-from backend.analytics.utils import get_supabase_credentials, load_sales_items_df, load_vouchers_df, apply_analytics_filters
+from backend.analytics.utils import get_supabase_credentials, load_vouchers_df, load_sales_items_df, load_products_df, apply_analytics_filters
 
 router = APIRouter()
 
@@ -12,9 +12,7 @@ def get_highest_margin_products(limit: int = 10, start_date: str = None, end_dat
     if items_df.empty:
         return []
         
-    headers = {"apikey": key, "Authorization": f"Bearer {key}"}
-    prod_res = requests.get(f"{url}/rest/v1/products?select=product_name,group_name", headers=headers)
-    products_df = pd.DataFrame(prod_res.json()) if prod_res.status_code == 200 else pd.DataFrame()
+    products_df = load_products_df(url, key)
     
     vouchers_df = load_vouchers_df(url, key)
     

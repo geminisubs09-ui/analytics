@@ -1,6 +1,6 @@
 import pandas as pd
 from fastapi import APIRouter
-from backend.analytics.utils import get_supabase_credentials, load_sales_items_df, apply_analytics_filters
+from backend.analytics.utils import get_supabase_credentials, load_sales_items_df, load_products_df, apply_analytics_filters
 from datetime import datetime, timedelta
 
 router = APIRouter()
@@ -61,11 +61,8 @@ def get_slow_moving_stock(start_date: str = None, end_date: str = None, party: s
         return []
         
     # Optional: fetch product groups to enrich data
-    import requests
-    headers = {"apikey": key, "Authorization": f"Bearer {key}"}
-    prod_res = requests.get(f"{url}/rest/v1/products?select=product_name,group_name", headers=headers)
-    if prod_res.status_code == 200:
-        products_df = pd.DataFrame(prod_res.json())
+    products_df = load_products_df(url, key)
+    if not products_df.empty:
         slow_moving = pd.merge(slow_moving, products_df, on='product_name', how='left')
         slow_moving['group_name'] = slow_moving['group_name'].fillna('Unmapped')
     else:
