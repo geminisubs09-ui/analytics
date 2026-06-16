@@ -23,10 +23,9 @@ def get_pricing_consistency(min_sales: int = 5, start_date: str = None, end_date
         product_group=product_group
     )
     
-    # Exclude products in the 'Indian Item' group
-    if not products_df.empty and not items_df.empty:
-        indian_products = products_df[products_df['group_name'].fillna('').str.lower().str.strip() == 'indian item']['product_name']
-        items_df = items_df[~items_df['product_name'].isin(indian_products)]
+    # Exclude the specific generic product named 'Indian Item'
+    if not items_df.empty:
+        items_df = items_df[items_df['product_name'].str.lower().str.strip() != 'indian item']
         
     if items_df.empty:
         return []
@@ -38,7 +37,19 @@ def get_pricing_consistency(min_sales: int = 5, start_date: str = None, end_date
             continue
         min_rate = float(group['rate'].min())
         max_rate = float(group['rate'].max())
-        avg_rate = float(group['rate'].mean())
+        # Robust average rate calculation:
+        # Find the selling price that occurs most number of times (mode)
+        mode_series = group['rate'].mode()
+        if not mode_series.empty:
+            mode_rate = mode_series.iloc[0]
+            # Only use prices that are within 10% (inclusive) above or below the mode
+            lower_bound = mode_rate * 0.9
+            upper_bound = mode_rate * 1.1
+            filtered_rates = group[(group['rate'] >= lower_bound) & (group['rate'] <= upper_bound)]['rate']
+            avg_rate = float(filtered_rates.mean())
+        else:
+            avg_rate = float(group['rate'].mean())
+            
         std_rate = float(group['rate'].std()) if sales_count > 1 else 0.0
         
         # Get invoices/parties for min rate
