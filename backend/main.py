@@ -355,3 +355,37 @@ def assign_group(req: AssignGroupRequest):
     return {
         "message": f"Successfully mapped '{req.product_name}' to group '{req.group_name}'."
     }
+
+@app.get("/raw/{table}")
+def get_raw_table(table: str, filter: str = None):
+    if table not in ["vouchers", "sales_items", "products"]:
+        raise HTTPException(status_code=400, detail="Invalid table name")
+    
+    url, key = get_supabase_credentials()
+    headers = {
+        "apikey": key,
+        "Authorization": f"Bearer {key}"
+    }
+    
+    results = []
+    limit = 1000
+    offset = 0
+    while True:
+        req_url = f"{url}/rest/v1/{table}?select=*&limit={limit}&offset={offset}"
+        if filter:
+            req_url += f"&{filter}"
+            
+        res = requests.get(req_url, headers=headers)
+        if res.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"Failed to fetch {table} from Supabase: {res.text}")
+            
+        data = res.json()
+        if not data:
+            break
+        results.extend(data)
+        if len(data) < limit:
+            break
+        offset += limit
+        
+    return results
+

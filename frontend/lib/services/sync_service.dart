@@ -3,69 +3,24 @@ import 'package:http/http.dart' as http;
 import 'local_db_service.dart';
 
 class SyncService {
-  static const String _supabaseUrl = 'https://dovwkxezwhszhcgeswfk.supabase.co/rest/v1';
-  static String get _supabaseKey => utf8.decode(base64.decode('c2Jfc2VjcmV0X2VBWHNOTWxXTkNzcDVSOEI4TWNkR0FfeVRjLVYyMG0='));
+  static const String _backendUrl = 'https://sales-analytics-backend-nuv8.onrender.com';
 
-  static Map<String, String> _getHeaders() {
-    return {
-      'apikey': _supabaseKey,
-      'Authorization': 'Bearer $_supabaseKey',
-      'Content-Type': 'application/json',
-    };
-  }
-
-  // Generic paginated fetch helper
+  // Generic paginated fetch helper calling our FastAPI backend securely
   static Future<List<Map<String, dynamic>>> fetchTable(String table, {String? filter}) async {
-    final List<Map<String, dynamic>> results = [];
-    int limit = 1000;
-    int offset = 0;
-
-    while (true) {
-      String url = '$_supabaseUrl/$table?select=*&limit=$limit&offset=$offset';
-      if (filter != null && filter.isNotEmpty) {
-        url += '&$filter';
-      }
-
-      final response = await http.get(Uri.parse(url), headers: _getHeaders());
-      if (response.statusCode != 200) {
-        throw Exception('Failed to fetch from Supabase table $table: ${response.body}');
-      }
-
-      final List<dynamic> data = json.decode(response.body);
-      if (data.isEmpty) break;
-
-      results.addAll(data.cast<Map<String, dynamic>>());
-      if (data.length < limit) break;
-
-      offset += limit;
+    String url = '$_backendUrl/raw/$table';
+    if (filter != null && filter.isNotEmpty) {
+      url += '?filter=${Uri.encodeComponent(filter)}';
     }
 
-    return results;
-  }
-
-  // Push local group assignment to Supabase
-  static Future<bool> assignGroupOnSupabase(String productName, String groupName) async {
-    final url = '$_supabaseUrl/products';
-    final payload = {
-      'product_name': productName.trim(),
-      'group_name': groupName.trim(),
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          ..._getHeaders(),
-          'Prefer': 'resolution=merge-duplicates',
-        },
-        body: json.encode([payload]),
-      );
-      return response.statusCode == 200 || response.statusCode == 201;
-    } catch (e) {
-      print('Failed to push group assignment to Supabase: $e');
-      return false;
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode != 200) {
+      throw Exception('Failed to fetch from backend table $table: ${response.body}');
     }
+
+    final List<dynamic> data = json.decode(response.body);
+    return data.cast<Map<String, dynamic>>();
   }
+
 
   // Execute sync
   static Future<void> sync() async {

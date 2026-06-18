@@ -251,8 +251,8 @@ class SalesProvider with ChangeNotifier {
       } else {
         await _clientComputeService.assignGroup(productName, groupName);
       }
-      // Push to Supabase in background
-      SyncService.assignGroupOnSupabase(productName, groupName).catchError((e) {
+      // Push to Supabase via backend in background
+      _apiService.assignGroup(productName, groupName).catchError((e) {
         debugPrint('Background push of assigned group failed: $e');
         return false;
       });
