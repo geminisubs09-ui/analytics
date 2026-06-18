@@ -1,9 +1,16 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../models/analytics_models.dart';
 import '../services/api_service.dart';
+import '../services/local_db_service.dart';
+import '../services/sync_service.dart';
+import '../services/client_compute_service.dart';
 
 class SalesProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
+  final LocalDbService _localDbService = LocalDbService();
+  final ClientComputeService _clientComputeService = ClientComputeService();
+
+  bool get isAndroid => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   // Filters
   String _startDate = '';
@@ -14,6 +21,7 @@ class SalesProvider with ChangeNotifier {
   // Loading States
   bool _isLoading = false;
   String _errorMessage = '';
+  bool _webDataLoaded = false;
 
   // Data Cache
   List<GroupSales> _groupSales = [];
@@ -100,50 +108,119 @@ class SalesProvider with ChangeNotifier {
       final party = _partyFilter.isEmpty ? null : _partyFilter;
       final group = _productGroupFilter.isEmpty ? null : _productGroupFilter;
 
-      // Execute APIs in parallel
-      final results = await Future.wait([
-        _apiService.getGroupSales(startDate: start, endDate: end, party: party),
-        _apiService.getTopCustomers(limit: 10, startDate: start, endDate: end, productGroup: group),
-        _apiService.getTopSellers(limit: 10, startDate: start, endDate: end, productGroup: group),
-        _apiService.getTopProducts(startDate: start, endDate: end, party: party, productGroup: group),
-        _apiService.getTopSalesProducts(startDate: start, endDate: end, party: party, productGroup: group),
-        _apiService.getDailyTrends(startDate: start, endDate: end, party: party, productGroup: group),
-        _apiService.getPricingConsistency(minSales: 5, startDate: start, endDate: end, party: party, productGroup: group),
-        _apiService.getWeekdaySales(startDate: start, endDate: end, party: party, productGroup: group),
-        _apiService.getParetoAnalysis(startDate: start, endDate: end),
-        _apiService.getMitiDailyTrends(startDate: start, endDate: end, party: party, productGroup: group),
-        _apiService.getMitiMonthlyTrends(startDate: start, endDate: end, party: party, productGroup: group),
-        _apiService.getCustomerRetention(startDate: start, endDate: end),
-        _apiService.getSalesByVoucherType(startDate: start, endDate: end, party: party),
-        _apiService.getHighestMarginProducts(limit: 10, startDate: start, endDate: end, productGroup: group),
-        _apiService.getHighestMarginCustomers(startDate: start, endDate: end),
-        _apiService.getImportForecast(),
-        _apiService.getMarketBasket(startDate: start, endDate: end, party: party, productGroup: group),
-        _apiService.getCustomerCLV(startDate: start, endDate: end, party: party),
-        _apiService.getSlowMovingStock(startDate: start, endDate: end, party: party, productGroup: group),
-        _apiService.getSalesForecast(startDate: start, endDate: end, party: party),
-      ]);
+      if (isAndroid) {
+        // Run sync before querying SQLite
+        try {
+          await SyncService.sync();
+        } catch (syncError) {
+          debugPrint('Sync failed, falling back to cached local DB: $syncError');
+        }
 
-      _groupSales = results[0] as List<GroupSales>;
-      _topCustomers = results[1] as List<CustomerSales>;
-      _topSellers = results[2] as List<CustomerSales>;
-      _topProducts = results[3] as List<ProductSales>;
-      _topSalesProducts = results[4] as List<ProductSales>;
-      _dailyTrends = results[5] as List<DailyTrend>;
-      _pricingConsistency = results[6] as List<PricingConsistency>;
-      _weekdaySales = results[7] as List<WeekdaySales>;
-      _paretoAnalysis = results[8] as ParetoAnalysis;
-      _mitiDailyTrends = results[9] as List<MitiDailyTrend>;
-      _mitiMonthlyTrends = results[10] as List<MitiMonthlyTrend>;
-      _customerRetention = results[11] as List<CustomerRetention>;
-      _voucherTypeSales = results[12] as List<VoucherTypeSales>;
-      _highestMarginProducts = results[13] as List<HighMarginProduct>;
-      _highestMarginCustomers = results[14] as List<HighMarginCustomer>;
-      _importForecasts = results[15] as List<ImportForecast>;
-      _marketBasket = results[16] as List<MarketBasketPair>;
-      _customerCLV = results[17] as List<CustomerCLV>;
-      _slowMovingStock = results[18] as List<SlowMovingProduct>;
-      _salesForecast = results[19] as List<SalesForecast>;
+        // Execute queries locally in parallel
+        final results = await Future.wait([
+          _localDbService.getGroupSales(startDate: start, endDate: end, party: party),
+          _localDbService.getTopCustomers(limit: 10, startDate: start, endDate: end, productGroup: group),
+          _localDbService.getTopSellers(limit: 10, startDate: start, endDate: end, productGroup: group),
+          _localDbService.getTopProducts(startDate: start, endDate: end, party: party, productGroup: group),
+          _localDbService.getTopSalesProducts(startDate: start, endDate: end, party: party, productGroup: group),
+          _localDbService.getDailyTrends(startDate: start, endDate: end, party: party, productGroup: group),
+          _localDbService.getPricingConsistency(minSales: 5, startDate: start, endDate: end, party: party, productGroup: group),
+          _localDbService.getWeekdaySales(startDate: start, endDate: end, party: party, productGroup: group),
+          _localDbService.getParetoAnalysis(startDate: start, endDate: end),
+          _localDbService.getMitiDailyTrends(startDate: start, endDate: end, party: party, productGroup: group),
+          _localDbService.getMitiMonthlyTrends(startDate: start, endDate: end, party: party, productGroup: group),
+          _localDbService.getCustomerRetention(startDate: start, endDate: end),
+          _localDbService.getSalesByVoucherType(startDate: start, endDate: end, party: party),
+          _localDbService.getHighestMarginProducts(limit: 10, startDate: start, endDate: end, productGroup: group),
+          _localDbService.getHighestMarginCustomers(startDate: start, endDate: end),
+          _localDbService.getImportForecast(),
+          _localDbService.getMarketBasket(startDate: start, endDate: end, party: party, productGroup: group),
+          _localDbService.getCustomerCLV(startDate: start, endDate: end, party: party),
+          _localDbService.getSlowMovingStock(startDate: start, endDate: end, party: party, productGroup: group),
+          _localDbService.getSalesForecast(startDate: start, endDate: end, party: party),
+        ]);
+
+        _groupSales = results[0] as List<GroupSales>;
+        _topCustomers = results[1] as List<CustomerSales>;
+        _topSellers = results[2] as List<CustomerSales>;
+        _topProducts = results[3] as List<ProductSales>;
+        _topSalesProducts = results[4] as List<ProductSales>;
+        _dailyTrends = results[5] as List<DailyTrend>;
+        _pricingConsistency = results[6] as List<PricingConsistency>;
+        _weekdaySales = results[7] as List<WeekdaySales>;
+        _paretoAnalysis = results[8] as ParetoAnalysis;
+        _mitiDailyTrends = results[9] as List<MitiDailyTrend>;
+        _mitiMonthlyTrends = results[10] as List<MitiMonthlyTrend>;
+        _customerRetention = results[11] as List<CustomerRetention>;
+        _voucherTypeSales = results[12] as List<VoucherTypeSales>;
+        _highestMarginProducts = results[13] as List<HighMarginProduct>;
+        _highestMarginCustomers = results[14] as List<HighMarginCustomer>;
+        _importForecasts = results[15] as List<ImportForecast>;
+        _marketBasket = results[16] as List<MarketBasketPair>;
+        _customerCLV = results[17] as List<CustomerCLV>;
+        _slowMovingStock = results[18] as List<SlowMovingProduct>;
+        _salesForecast = results[19] as List<SalesForecast>;
+      } else {
+        // Client-side computation for Web
+        if (!_webDataLoaded) {
+          final resultsTable = await Future.wait([
+            SyncService.fetchTable('vouchers'),
+            SyncService.fetchTable('sales_items'),
+            SyncService.fetchTable('products'),
+          ]);
+          _clientComputeService.updateCache(
+            vouchers: resultsTable[0],
+            salesItems: resultsTable[1],
+            products: resultsTable[2],
+          );
+          _webDataLoaded = true;
+        }
+
+        // Execute queries locally in-memory
+        final results = await Future.wait([
+          _clientComputeService.getGroupSales(startDate: start, endDate: end, party: party),
+          _clientComputeService.getTopCustomers(limit: 10, startDate: start, endDate: end, productGroup: group),
+          _clientComputeService.getTopSellers(limit: 10, startDate: start, endDate: end, productGroup: group),
+          _clientComputeService.getTopProducts(startDate: start, endDate: end, party: party, productGroup: group),
+          _clientComputeService.getTopSalesProducts(startDate: start, endDate: end, party: party, productGroup: group),
+          _clientComputeService.getDailyTrends(startDate: start, endDate: end, party: party, productGroup: group),
+          _clientComputeService.getPricingConsistency(minSales: 5, startDate: start, endDate: end, party: party, productGroup: group),
+          _clientComputeService.getWeekdaySales(startDate: start, endDate: end, party: party, productGroup: group),
+          _clientComputeService.getParetoAnalysis(startDate: start, endDate: end),
+          _clientComputeService.getMitiDailyTrends(startDate: start, endDate: end, party: party, productGroup: group),
+          _clientComputeService.getMitiMonthlyTrends(startDate: start, endDate: end, party: party, productGroup: group),
+          _clientComputeService.getCustomerRetention(startDate: start, endDate: end),
+          _clientComputeService.getSalesByVoucherType(startDate: start, endDate: end, party: party),
+          _clientComputeService.getHighestMarginProducts(limit: 10, startDate: start, endDate: end, productGroup: group),
+          _clientComputeService.getHighestMarginCustomers(startDate: start, endDate: end),
+          _clientComputeService.getImportForecast(),
+          _clientComputeService.getMarketBasket(startDate: start, endDate: end, party: party, productGroup: group),
+          _clientComputeService.getCustomerCLV(startDate: start, endDate: end, party: party),
+          _clientComputeService.getSlowMovingStock(startDate: start, endDate: end, party: party, productGroup: group),
+          _clientComputeService.getSalesForecast(startDate: start, endDate: end, party: party),
+        ]);
+
+        _groupSales = results[0] as List<GroupSales>;
+        _topCustomers = results[1] as List<CustomerSales>;
+        _topSellers = results[2] as List<CustomerSales>;
+        _topProducts = results[3] as List<ProductSales>;
+        _topSalesProducts = results[4] as List<ProductSales>;
+        _dailyTrends = results[5] as List<DailyTrend>;
+        _pricingConsistency = results[6] as List<PricingConsistency>;
+        _weekdaySales = results[7] as List<WeekdaySales>;
+        _paretoAnalysis = results[8] as ParetoAnalysis;
+        _mitiDailyTrends = results[9] as List<MitiDailyTrend>;
+        _mitiMonthlyTrends = results[10] as List<MitiMonthlyTrend>;
+        _customerRetention = results[11] as List<CustomerRetention>;
+        _voucherTypeSales = results[12] as List<VoucherTypeSales>;
+        _highestMarginProducts = results[13] as List<HighMarginProduct>;
+        _highestMarginCustomers = results[14] as List<HighMarginCustomer>;
+        _importForecasts = results[15] as List<ImportForecast>;
+        _marketBasket = results[16] as List<MarketBasketPair>;
+        _customerCLV = results[17] as List<CustomerCLV>;
+        _slowMovingStock = results[18] as List<SlowMovingProduct>;
+        _salesForecast = results[19] as List<SalesForecast>;
+      }
 
       // Load ungrouped products separately
       await fetchUngroupedProducts();
@@ -157,7 +234,11 @@ class SalesProvider with ChangeNotifier {
 
   Future<void> fetchUngroupedProducts() async {
     try {
-      _ungroupedProducts = await _apiService.getUngroupedProducts();
+      if (isAndroid) {
+        _ungroupedProducts = await _localDbService.getUngroupedProducts();
+      } else {
+        _ungroupedProducts = await _clientComputeService.getUngroupedProducts();
+      }
     } catch (e) {
       debugPrint('Error loading ungrouped products: $e');
     }
@@ -165,13 +246,19 @@ class SalesProvider with ChangeNotifier {
 
   Future<bool> assignProductGroup(String productName, String groupName) async {
     try {
-      final success = await _apiService.assignGroup(productName, groupName);
-      if (success) {
-        await fetchUngroupedProducts();
-        notifyListeners();
-        return true;
+      if (isAndroid) {
+        await _localDbService.assignGroup(productName, groupName);
+      } else {
+        await _clientComputeService.assignGroup(productName, groupName);
       }
-      return false;
+      // Push to Supabase in background
+      SyncService.assignGroupOnSupabase(productName, groupName).catchError((e) {
+        debugPrint('Background push of assigned group failed: $e');
+        return false;
+      });
+      await fetchUngroupedProducts();
+      notifyListeners();
+      return true;
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
@@ -186,6 +273,15 @@ class SalesProvider with ChangeNotifier {
 
     try {
       final result = await _apiService.uploadExcelFile('/upload/sales', bytes, name);
+      if (isAndroid) {
+        try {
+          await SyncService.sync();
+        } catch (syncError) {
+          debugPrint('Sync after upload failed: $syncError');
+        }
+      } else {
+        _webDataLoaded = false;
+      }
       await fetchDashboard();
       return result;
     } catch (e) {
@@ -203,6 +299,15 @@ class SalesProvider with ChangeNotifier {
 
     try {
       final result = await _apiService.uploadExcelFile('/upload/products', bytes, name);
+      if (isAndroid) {
+        try {
+          await SyncService.sync();
+        } catch (syncError) {
+          debugPrint('Sync after upload failed: $syncError');
+        }
+      } else {
+        _webDataLoaded = false;
+      }
       await fetchDashboard();
       return result;
     } catch (e) {
