@@ -12,7 +12,6 @@ from backend.analytics.top_customers import router as top_customers_router
 from backend.analytics.top_products import router as top_products_router
 from backend.analytics.daily_trends import router as daily_trends_router
 from backend.analytics.pricing_consistency import router as pricing_consistency_router
-from backend.analytics.weekday_sales import router as weekday_sales_router
 from backend.analytics.pareto import router as pareto_router
 from backend.analytics.miti_trends import router as miti_trends_router
 from backend.analytics.customer_retention import router as customer_retention_router
@@ -20,7 +19,6 @@ from backend.analytics.voucher_type_sales import router as voucher_type_sales_ro
 from backend.analytics.highest_margin_products import router as highest_margin_products_router
 from backend.analytics.highest_margin_customers import router as highest_margin_customers_router
 from backend.analytics.import_forecast import router as import_forecast_router
-from backend.analytics.market_basket import router as market_basket_router
 from backend.analytics.customer_clv import router as customer_clv_router
 from backend.analytics.slow_moving_stock import router as slow_moving_stock_router
 from backend.analytics.sales_forecast import router as sales_forecast_router
@@ -47,7 +45,6 @@ app.include_router(top_customers_router)
 app.include_router(top_products_router)
 app.include_router(daily_trends_router)
 app.include_router(pricing_consistency_router)
-app.include_router(weekday_sales_router)
 app.include_router(pareto_router)
 app.include_router(miti_trends_router)
 app.include_router(customer_retention_router)
@@ -55,7 +52,6 @@ app.include_router(voucher_type_sales_router)
 app.include_router(highest_margin_products_router)
 app.include_router(highest_margin_customers_router)
 app.include_router(import_forecast_router)
-app.include_router(market_basket_router)
 app.include_router(customer_clv_router)
 app.include_router(slow_moving_stock_router)
 app.include_router(sales_forecast_router)

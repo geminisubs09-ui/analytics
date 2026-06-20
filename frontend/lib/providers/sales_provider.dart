@@ -125,7 +125,7 @@ class SalesProvider with ChangeNotifier {
           _localDbService.getTopSalesProducts(startDate: start, endDate: end, party: party, productGroup: group),
           _localDbService.getDailyTrends(startDate: start, endDate: end, party: party, productGroup: group),
           _localDbService.getPricingConsistency(minSales: 5, startDate: start, endDate: end, party: party, productGroup: group),
-          _localDbService.getWeekdaySales(startDate: start, endDate: end, party: party, productGroup: group),
+          Future.value(<WeekdaySales>[]), // Removed WeekdaySales calculation
           _localDbService.getParetoAnalysis(startDate: start, endDate: end),
           _localDbService.getMitiDailyTrends(startDate: start, endDate: end, party: party, productGroup: group),
           _localDbService.getMitiMonthlyTrends(startDate: start, endDate: end, party: party, productGroup: group),
@@ -134,7 +134,7 @@ class SalesProvider with ChangeNotifier {
           _localDbService.getHighestMarginProducts(limit: 10, startDate: start, endDate: end, productGroup: group),
           _localDbService.getHighestMarginCustomers(startDate: start, endDate: end),
           _localDbService.getImportForecast(),
-          _localDbService.getMarketBasket(startDate: start, endDate: end, party: party, productGroup: group),
+          Future.value(<MarketBasketPair>[]), // Removed Market Basket calculation
           _localDbService.getCustomerCLV(startDate: start, endDate: end, party: party),
           _localDbService.getSlowMovingStock(startDate: start, endDate: end, party: party, productGroup: group),
           _localDbService.getSalesForecast(startDate: start, endDate: end, party: party),
@@ -185,7 +185,7 @@ class SalesProvider with ChangeNotifier {
           _clientComputeService.getTopSalesProducts(startDate: start, endDate: end, party: party, productGroup: group),
           _clientComputeService.getDailyTrends(startDate: start, endDate: end, party: party, productGroup: group),
           _clientComputeService.getPricingConsistency(minSales: 5, startDate: start, endDate: end, party: party, productGroup: group),
-          _clientComputeService.getWeekdaySales(startDate: start, endDate: end, party: party, productGroup: group),
+          Future.value(<WeekdaySales>[]), // Removed WeekdaySales calculation
           _clientComputeService.getParetoAnalysis(startDate: start, endDate: end),
           _clientComputeService.getMitiDailyTrends(startDate: start, endDate: end, party: party, productGroup: group),
           _clientComputeService.getMitiMonthlyTrends(startDate: start, endDate: end, party: party, productGroup: group),
@@ -194,7 +194,7 @@ class SalesProvider with ChangeNotifier {
           _clientComputeService.getHighestMarginProducts(limit: 10, startDate: start, endDate: end, productGroup: group),
           _clientComputeService.getHighestMarginCustomers(startDate: start, endDate: end),
           _clientComputeService.getImportForecast(),
-          _clientComputeService.getMarketBasket(startDate: start, endDate: end, party: party, productGroup: group),
+          Future.value(<MarketBasketPair>[]), // Removed Market Basket calculation
           _clientComputeService.getCustomerCLV(startDate: start, endDate: end, party: party),
           _clientComputeService.getSlowMovingStock(startDate: start, endDate: end, party: party, productGroup: group),
           _clientComputeService.getSalesForecast(startDate: start, endDate: end, party: party),

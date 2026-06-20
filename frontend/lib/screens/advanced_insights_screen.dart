@@ -26,7 +26,7 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 8, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
     _pricingSearchController.addListener(() {
       setState(() {
         _pricingSearchQuery = _pricingSearchController.text.toLowerCase();
@@ -70,9 +70,7 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
           tabs: const [
             Tab(text: 'Pricing Spread', icon: Icon(Icons.difference_outlined, size: 18)),
             Tab(text: 'Customer CRM', icon: Icon(Icons.people_outline, size: 18)),
-            Tab(text: 'Dispatch Planner', icon: Icon(Icons.schedule_outlined, size: 18)),
             Tab(text: 'Miti BS Trends', icon: Icon(Icons.calendar_today_outlined, size: 18)),
-            Tab(text: 'Market Basket', icon: Icon(Icons.shopping_basket_outlined, size: 18)),
             Tab(text: 'Customer CLV', icon: Icon(Icons.monetization_on_outlined, size: 18)),
             Tab(text: 'Dead Stock', icon: Icon(Icons.inventory_2_outlined, size: 18)),
             Tab(text: 'Sales Forecast', icon: Icon(Icons.trending_up_outlined, size: 18)),
@@ -86,9 +84,7 @@ class _AdvancedInsightsScreenState extends State<AdvancedInsightsScreen> with Si
               children: [
                 _buildPricingSpreadTab(provider.pricingConsistency),
                 _buildCustomerCrmTab(provider.customerRetention),
-                _buildDispatchPlannerTab(provider.weekdaySales),
                 _buildMitiTrendsTab(provider.mitiMonthlyTrends),
-                _buildMarketBasketTab(provider.marketBasket),
                 _buildCustomerCLVTab(provider.customerCLV),
                 _buildDeadStockTab(provider.slowMovingStock),
                 _buildSalesForecastTab(provider.salesForecast),
