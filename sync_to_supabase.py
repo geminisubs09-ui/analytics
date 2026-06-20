@@ -138,14 +138,24 @@ def sync_data(excel_path, products_path, env_path):
         return
     print(f"Synced {len(products)} product categories.")
     
-    # 3. Check for existing vouchers in Supabase
+    # 3. Check for existing vouchers in Supabase (with pagination)
     print("Checking for duplicate vouchers already in Supabase...")
-    vch_res = requests.get(f"{supabase_url}/rest/v1/vouchers?select=vch_type,vch_no", headers=headers)
-    if vch_res.status_code != 200:
-        print(f"Error fetching existing vouchers: {vch_res.text}")
-        return
-        
-    existing_vouchers = {(v['vch_type'], v['vch_no']) for v in vch_res.json()}
+    existing_vouchers = set()
+    limit = 1000
+    offset = 0
+    while True:
+        vch_res = requests.get(f"{supabase_url}/rest/v1/vouchers?select=vch_type,vch_no&limit={limit}&offset={offset}", headers=headers)
+        if vch_res.status_code != 200:
+            print(f"Error fetching existing vouchers: {vch_res.text}")
+            return
+        data = vch_res.json()
+        if not data:
+            break
+        for v in data:
+            existing_vouchers.add((v['vch_type'], v['vch_no']))
+        if len(data) < limit:
+            break
+        offset += limit
     print(f"Found {len(existing_vouchers)} existing vouchers in the cloud database.")
     
     # Filter out duplicates

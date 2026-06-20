@@ -325,13 +325,22 @@ def main():
     # 5. Fetch existing vouchers from Supabase to prevent duplicates in cloud
     print("\nFetching existing vouchers from Supabase...")
     try:
-        vch_res = requests.get(f"{supabase_url}/rest/v1/vouchers?select=vch_type,vch_no", headers=headers)
-        if vch_res.status_code == 200:
-            existing_supabase_vouchers = {(v['vch_type'], v['vch_no']) for v in vch_res.json()}
-            print(f"Found {len(existing_supabase_vouchers)} existing vouchers in Supabase.")
-        else:
-            print(f"Error fetching existing vouchers from Supabase: {vch_res.text}")
-            existing_supabase_vouchers = set()
+        existing_supabase_vouchers = set()
+        limit = 1000
+        offset = 0
+        while True:
+            vch_res = requests.get(f"{supabase_url}/rest/v1/vouchers?select=vch_type,vch_no&limit={limit}&offset={offset}", headers=headers)
+            if vch_res.status_code != 200:
+                raise Exception(f"Failed to fetch vouchers: {vch_res.text}")
+            data = vch_res.json()
+            if not data:
+                break
+            for v in data:
+                existing_supabase_vouchers.add((v['vch_type'], v['vch_no']))
+            if len(data) < limit:
+                break
+            offset += limit
+        print(f"Found {len(existing_supabase_vouchers)} existing vouchers in Supabase.")
     except Exception as e:
         print(f"Failed to connect to Supabase: {e}")
         existing_supabase_vouchers = set()

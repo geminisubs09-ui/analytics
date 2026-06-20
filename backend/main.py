@@ -211,12 +211,22 @@ async def upload_sales(file: UploadFile = File(...)):
     except Exception as parse_err:
         raise HTTPException(status_code=400, detail=f"Failed to parse Excel file: {parse_err}")
         
-    # Check for existing vouchers in Supabase
-    vch_res = requests.get(f"{url}/rest/v1/vouchers?select=vch_type,vch_no", headers=headers)
-    if vch_res.status_code != 200:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch existing vouchers: {vch_res.text}")
-        
-    existing_vouchers = {(v['vch_type'], v['vch_no']) for v in vch_res.json()}
+    # Check for existing vouchers in Supabase (with pagination to bypass 1000-row limit)
+    existing_vouchers = set()
+    limit = 1000
+    offset = 0
+    while True:
+        vch_res = requests.get(f"{url}/rest/v1/vouchers?select=vch_type,vch_no&limit={limit}&offset={offset}", headers=headers)
+        if vch_res.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"Failed to fetch existing vouchers: {vch_res.text}")
+        data = vch_res.json()
+        if not data:
+            break
+        for v in data:
+            existing_vouchers.add((v['vch_type'], v['vch_no']))
+        if len(data) < limit:
+            break
+        offset += limit
     
     vouchers_to_insert = []
     items_to_insert = []
