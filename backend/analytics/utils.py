@@ -98,6 +98,10 @@ def load_sales_items_df(url, key):
         df['value'] = pd.to_numeric(df['value'], errors='coerce')
         df['quantity'] = pd.to_numeric(df['quantity'], errors='coerce')
         df['rate'] = pd.to_numeric(df['rate'], errors='coerce')
+        if 'cost' in df.columns:
+            df['cost'] = pd.to_numeric(df['cost'], errors='coerce')
+        if 'cost_rate' in df.columns:
+            df['cost_rate'] = pd.to_numeric(df['cost_rate'], errors='coerce')
     return df
 
 def load_products_df(url, key):
@@ -106,7 +110,7 @@ def load_products_df(url, key):
     limit = 1000
     offset = 0
     while True:
-        res = requests.get(f"{url}/rest/v1/products?select=product_name,group_name&limit={limit}&offset={offset}", headers=headers)
+        res = requests.get(f"{url}/rest/v1/products?select=product_name,group_name,cost_rate&limit={limit}&offset={offset}", headers=headers)
         if res.status_code != 200:
             raise HTTPException(status_code=500, detail=f"Failed to fetch products: {res.text}")
         data = res.json()
@@ -116,7 +120,10 @@ def load_products_df(url, key):
         if len(data) < limit:
             break
         offset += limit
-    return pd.DataFrame(all_data)
+    df = pd.DataFrame(all_data)
+    if not df.empty and 'cost_rate' in df.columns:
+        df['cost_rate'] = pd.to_numeric(df['cost_rate'], errors='coerce')
+    return df
 
 def apply_analytics_filters(
     vouchers_df=None, 
@@ -141,6 +148,8 @@ def apply_analytics_filters(
     # 1. Filter Vouchers DataFrame
     if vouchers_df is not None and not vouchers_df.empty:
         filtered_vch = vouchers_df.copy()
+        sales_types = {'Sales', 'Head Office Sales', 'Bafal Sales', 'Pasal'}
+        filtered_vch = filtered_vch[filtered_vch['vch_type'].isin(sales_types)]
         if start_date:
             filtered_vch = filtered_vch[filtered_vch['date'] >= start_date]
         if end_date:
@@ -158,6 +167,8 @@ def apply_analytics_filters(
     # 2. Filter Sales Items DataFrame
     if items_df is not None and not items_df.empty:
         filtered_items = items_df.copy()
+        sales_types = {'Sales', 'Head Office Sales', 'Bafal Sales', 'Pasal'}
+        filtered_items = filtered_items[filtered_items['vch_type'].isin(sales_types)]
         if start_date:
             filtered_items = filtered_items[filtered_items['date'] >= start_date]
         if end_date:

@@ -37,8 +37,18 @@ def get_group_sales(start_date: str = None, end_date: str = None, party: str = N
     merged = pd.merge(merged, vouchers_df[['vch_type', 'vch_no', 'profit_pct']], on=['vch_type', 'vch_no'], how='left')
     merged['profit_pct'] = merged['profit_pct'].fillna(0.0)
     
-    # Calculate estimated item-level profit
-    merged['estimated_profit'] = merged['value'] * (merged['profit_pct'] / 100.0)
+    # Calculate estimated item-level profit using actual cost if available
+    def compute_profit(row):
+        cost = row.get('cost')
+        val = row.get('value', 0.0)
+        if pd.notna(cost) and cost is not None:
+            return float(val) - float(cost)
+        profit_pct = row.get('profit_pct', 0.0)
+        if pd.notna(profit_pct):
+            return float(val) * (float(profit_pct) / 100.0)
+        return 0.0
+
+    merged['estimated_profit'] = merged.apply(compute_profit, axis=1)
     
     # Aggregate by group
     group_summary = merged.groupby('group_name').agg(

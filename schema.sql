@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS vouchers (
 -- Create Products Group Mapping Table
 CREATE TABLE IF NOT EXISTS products (
     product_name TEXT PRIMARY KEY,
-    group_name TEXT NOT NULL
+    group_name TEXT NOT NULL,
+    cost_rate NUMERIC(12, 2)
 );
 
 -- Create Sales Items Table
@@ -30,6 +31,8 @@ CREATE TABLE IF NOT EXISTS sales_items (
     quantity NUMERIC(12, 3),
     rate NUMERIC(12, 2),
     value NUMERIC(15, 2),
+    cost NUMERIC(15, 2),
+    cost_rate NUMERIC(12, 2),
     FOREIGN KEY (vch_type, vch_no) REFERENCES vouchers (vch_type, vch_no) ON DELETE CASCADE
 );
 
